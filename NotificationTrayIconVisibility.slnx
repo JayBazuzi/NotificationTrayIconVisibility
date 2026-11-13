@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="NotificationTrayIconVisibility/NotificationTrayIconVisibility.csproj" />
+  <Project Path="NotificationTrayIconVisibility.Tests/NotificationTrayIconVisibility.Tests.csproj" />
+</Solution>
