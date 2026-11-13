@@ -1,4 +1,4 @@
-namespace NotificationTrayIconVisibility.Tests;
+﻿namespace NotificationTrayIconVisibility.Tests;
 
 public class TrayIconReachabilityTests
 {
