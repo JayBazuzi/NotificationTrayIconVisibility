@@ -1,0 +1,37 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+      - run: ./build-and-test
+      - name: Pack release
+        run: dotnet pack NotificationTrayIconVisibility.slnx -c Release -o ./artifacts
+      - name: Find version
+        id: version
+        shell: pwsh
+        run: |
+          $VERSION = (Get-ChildItem ./artifacts/NotificationTrayIconVisibility.[0-9]*.nupkg | Select-Object -First 1).BaseName -replace '^NotificationTrayIconVisibility\.', ''
+          "version=$VERSION" >> $env:GITHUB_OUTPUT
+      - name: NuGet Login
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+      - name: Push to NuGet.org
+        run: dotnet nuget push "artifacts\*.nupkg" --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json
+      - name: Create GitHub release
+        run: gh release create "v${{ steps.version.outputs.version }}" artifacts/*.nupkg --target "${{ github.sha }}" --title "v${{ steps.version.outputs.version }}" --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

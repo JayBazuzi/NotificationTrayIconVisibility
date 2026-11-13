@@ -1,0 +1,57 @@
+name: Build and Test
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '17 4 * * 4'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+      - run: ./build-and-test
+
+  publish-prerelease:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+      - name: Pack prerelease
+        run: dotnet pack NotificationTrayIconVisibility.slnx -c Release -p:VersionSuffix="ci.${{ github.run_number }}" -o ./artifacts
+      - name: NuGet Login
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+      - name: Push to NuGet.org
+        run: dotnet nuget push "artifacts\*.nupkg" --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+      - name: Tag release
+        run: |
+          $VERSION = (Get-ChildItem ./artifacts/NotificationTrayIconVisibility.[0-9]*.nupkg | Select-Object -First 1).BaseName -replace '^NotificationTrayIconVisibility\.', ''
+          git tag "v$VERSION"
+          git push origin "v$VERSION"
+
+  dependabot-merge:
+    needs: build
+    if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]' && github.event.repository.fork == false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - run: gh pr merge --rebase "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

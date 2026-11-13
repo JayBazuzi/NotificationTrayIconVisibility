@@ -1,0 +1,4 @@
+﻿| Setting                           | Key                                                                                         | Value                          |
+|-----------------------------------|---------------------------------------------------------------------------------------------|--------------------------------|
+| The icon is shown on the taskbar  | `HKCU\Control Panel\NotifyIconSettings\*`                                                   | `ExecutablePath`, `IsPromoted` |
+| The menu of hidden icons is shown | `HKCU\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\TrayNotify` | `SystemTrayChevronVisibility`  |
