@@ -16,7 +16,20 @@ It works with any tray icon library, since it only reads Windows' settings.
 
 Ask before hiding the window, and keep it on the taskbar when the icon can't be reached:
 
-snippet: hide-to-tray
+<!-- snippet: hide-to-tray -->
+<a id='snippet-hide-to-tray'></a>
+```cs
+if (new TrayIconReachability().CanUserReachTrayIcon(Environment.ProcessPath!))
+{
+    window.Hide();
+}
+else
+{
+    window.WindowState = WindowState.Minimized;
+}
+```
+<sup><a href='/NotificationTrayIconVisibility.Tests/UsageExamples.cs#L10-L19' title='Snippet source file'>snippet source</a> | <a href='#snippet-hide-to-tray' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
 
 
 ## How it works
